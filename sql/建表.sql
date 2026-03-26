@@ -205,3 +205,19 @@ create table user
 )
     comment '用户表';
 
+create table user_preference
+(
+    id                      bigint auto_increment comment 'ID'
+        primary key,
+    user_id                 bigint                             not null comment '用户ID',
+    favorite_room_ids       text                               null comment '常用会议室ID列表(JSON)',
+    preferred_equipment_ids text                               null comment '常用设备ID列表(JSON)',
+    preferred_time_slots    text                               null comment '常用时间段(JSON)',
+    favorite_building       varchar(100)                       null comment '常用楼栋',
+    avg_attendee_count      int      default 0                 null comment '平均参会人数',
+    update_time             datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    constraint uk_user_id
+        unique (user_id)
+)
+    comment '用户偏好表';
+
