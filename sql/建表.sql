@@ -78,29 +78,6 @@ create table equipment_category
 )
     comment '设备分类表';
 
-create table equipment_log
-(
-    id             bigint auto_increment comment '操作日志ID'
-        primary key,
-    equipment_id   bigint                             not null comment '设备ID',
-    operator_id    bigint                             not null comment '操作人ID',
-    from_room_id   bigint                             null comment '原会议室ID（NULL表示仓库/未分配）',
-    to_room_id     bigint                             null comment '新会议室ID（NULL表示移出/报废）',
-    operation_type int                                not null comment '操作类型（1-新增 2-移入 3-移出 4-维修 5-报废）',
-    old_status     int                                null comment '原状态',
-    new_status     int                                null comment '新状态',
-    remark         varchar(1000)                      null comment '备注',
-    create_time    datetime default CURRENT_TIMESTAMP null comment '操作时间',
-    update_time    datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'
-)
-    comment '管理员操作设备日志表';
-
-create index idx_equipment
-    on equipment_log (equipment_id);
-
-create index idx_room
-    on equipment_log (from_room_id, to_room_id);
-
 create table meeting_room
 (
     id            bigint auto_increment comment '会议室ID'

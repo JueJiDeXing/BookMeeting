@@ -40,9 +40,6 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
     private RoomEquipmentService roomEquipmentService;
 
     @Resource
-    private EquipmentLogService equipmentLogService;
-
-    @Resource
     @Lazy
     private MeetingRoomService meetingRoomService;
 
@@ -91,18 +88,6 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "添加设备失败");
         }
 
-        // 记录日志
-        equipmentLogService.logOperation(
-                equipment.getId(),
-                operatorId,
-                null,
-                null,
-                EquipmentOperationEnum.ADD.getValue(),
-                null,
-                equipment.getStatus(),
-                "新增设备"
-        );
-
         log.info("管理员[{}]新增设备[{}]，分类：{}", operatorId, equipment.getEquipmentName(), category.getCategoryName());
         return equipment;
     }
@@ -146,23 +131,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         updateEquipment.setIcon(icon);
         updateEquipment.setStatus(status);
 
-        boolean updated = updateById(updateEquipment);
-
-        // 如果状态有变化，记录日志
-        if (updated && oldStatus != null && !oldStatus.equals(status)) {
-            equipmentLogService.logOperation(
-                    id,
-                    operatorId,
-                    null,
-                    null,
-                    EquipmentOperationEnum.MAINTAIN.getValue(),
-                    oldStatus,
-                    status,
-                    status == 0 ? "通过编辑恢复可用" : "通过编辑设为不可用"
-            );
-        }
-
-        return updated;
+        return updateById(updateEquipment);
     }
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -183,18 +152,6 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         // 更新状态
         equipment.setStatus(status);
         updateById(equipment);
-
-        // 记录日志
-        equipmentLogService.logOperation(
-                id,
-                operatorId,
-                null,
-                null,
-                EquipmentOperationEnum.MAINTAIN.getValue(),
-                oldStatus,
-                status,
-                remark
-        );
 
         log.info("管理员[{}]更新设备[{}]状态: {} -> {}, 备注: {}",
                 operatorId, equipment.getEquipmentName(), oldStatus, status, remark);
@@ -232,18 +189,6 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         roomEquipment.setIsAvailable(1);
         roomEquipmentService.save(roomEquipment);
 
-        // 记录日志
-        equipmentLogService.logOperation(
-                equipmentId,
-                operatorId,
-                null,
-                roomId,
-                EquipmentOperationEnum.MOVE_IN.getValue(),
-                null,
-                equipment.getStatus(),
-                remark
-        );
-
         log.info("管理员[{}]将设备[{}]移入会议室[{}]", operatorId, equipment.getEquipmentName(), room.getRoomName());
         return true;
     }
@@ -272,18 +217,6 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         // 删除关联
         roomEquipmentService.removeById(roomEquipment.getId());
 
-        // 记录日志
-        equipmentLogService.logOperation(
-                equipmentId,
-                operatorId,
-                fromRoomId,
-                null,
-                EquipmentOperationEnum.MOVE_OUT.getValue(),
-                null,
-                equipment.getStatus(),
-                remark
-        );
-
         log.info("管理员[{}]将设备[{}]从会议室[{}]移出",
                 operatorId, equipment.getEquipmentName(), fromRoom != null ? fromRoom.getRoomName() : "未知");
         return true;
@@ -306,41 +239,14 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
             RoomEquipment roomEquipment = roomEquipmentService.getOne(wrapper);
 
             if (roomEquipment != null) {
-                Long fromRoomId = roomEquipment.getRoomId();
                 // 删除关联
                 roomEquipmentService.removeById(roomEquipment.getId());
-
-                // 记录移出日志
-                equipmentLogService.logOperation(
-                        equipmentId,
-                        operatorId,
-                        fromRoomId,
-                        null,
-                        EquipmentOperationEnum.MOVE_OUT.getValue(),
-                        null,
-                        equipment.getStatus(),
-                        "报废前移出会议室"
-                );
             }
         }
-
-        Integer oldStatus = equipment.getStatus();
 
         // 更新设备状态为不可用
         equipment.setStatus(1);
         updateById(equipment);
-
-        // 记录报废日志
-        equipmentLogService.logOperation(
-                equipmentId,
-                operatorId,
-                null,
-                null,
-                EquipmentOperationEnum.SCRAP.getValue(),
-                oldStatus,
-                1,
-                remark
-        );
 
         log.info("管理员[{}]报废设备[{}]", operatorId, equipment.getEquipmentName());
         return true;

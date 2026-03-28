@@ -7,21 +7,14 @@ import com.jjdx.bookmeeting.common.ErrorCode;
 import com.jjdx.bookmeeting.common.ResultUtils;
 import com.jjdx.bookmeeting.constant.UserConstant;
 import com.jjdx.bookmeeting.exception.BusinessException;
-import com.jjdx.bookmeeting.exception.ThrowUtils;
 import com.jjdx.bookmeeting.interceptor.aop.annotation.AuthCheck;
 import com.jjdx.bookmeeting.model.dto.admin.equipment.*;
 import com.jjdx.bookmeeting.model.entity.Equipment;
-import com.jjdx.bookmeeting.model.entity.EquipmentLog;
-import com.jjdx.bookmeeting.model.entity.MeetingRoom;
-import com.jjdx.bookmeeting.model.entity.User;
-import com.jjdx.bookmeeting.model.vo.EquipmentLogVO;
 import com.jjdx.bookmeeting.model.vo.EquipmentVO;
-import com.jjdx.bookmeeting.service.EquipmentLogService;
 import com.jjdx.bookmeeting.service.EquipmentService;
 import com.jjdx.bookmeeting.service.MeetingRoomService;
 import com.jjdx.bookmeeting.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -45,9 +38,6 @@ public class AdminEquipmentController {
 
     @Resource
     private MeetingRoomService meetingRoomService;
-
-    @Resource
-    private EquipmentLogService equipmentLogService;
 
     // region 增删改查
 
@@ -413,74 +403,6 @@ public class AdminEquipmentController {
 
     // endregion
 
-    // region 设备日志
-
-    /**
-     分页获取设备操作日志
-     */
-    @PostMapping("/log/page")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Page<EquipmentLogVO>> listEquipmentLogByPage(@RequestBody EquipmentLogQueryRequest queryRequest,
-                                                                     HttpServletRequest request) {
-        if (queryRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-
-        long current = queryRequest.getCurrent();
-        long size = queryRequest.getPageSize();
-
-        // 限制爬虫
-        
-
-        Page<EquipmentLog> logPage = equipmentLogService.page(
-                new Page<>(current, size),
-                equipmentLogService.getQueryWrapper(queryRequest)
-        );
-
-        // 转换为带设备名称和操作人名称的VO
-        Page<EquipmentLogVO> voPage = new Page<>(current, size, logPage.getTotal());
-        List<EquipmentLogVO> voList = logPage.getRecords().stream()
-                .map(log -> {
-                    EquipmentLogVO vo = new EquipmentLogVO();
-                    BeanUtils.copyProperties(log, vo);
-
-                    // 查询设备名称和代码
-                    Equipment equipment = equipmentService.getById(log.getEquipmentId());
-                    if (equipment != null) {
-                        vo.setEquipmentName(equipment.getEquipmentName());
-                        vo.setEquipmentCode(equipment.getEquipmentCode());
-                    }
-
-                    // 查询操作人名称
-                    User operator = userService.getById(log.getOperatorId());
-                    if (operator != null) {
-                        vo.setOperatorName(operator.getUserName());
-                    }
-
-                    // 查询原会议室名称
-                    if (log.getFromRoomId() != null) {
-                        MeetingRoom fromRoom = meetingRoomService.getById(log.getFromRoomId());
-                        if (fromRoom != null) {
-                            vo.setFromRoomName(fromRoom.getRoomName());
-                        }
-                    }
-
-                    // 查询新会议室名称
-                    if (log.getToRoomId() != null) {
-                        MeetingRoom toRoom = meetingRoomService.getById(log.getToRoomId());
-                        if (toRoom != null) {
-                            vo.setToRoomName(toRoom.getRoomName());
-                        }
-                    }
-
-                    return vo;
-                })
-                .collect(Collectors.toList());
-        voPage.setRecords(voList);
-
-        return ResultUtils.success(voPage);
-    }
-    // endregion
 
     // region 参数校验
 
