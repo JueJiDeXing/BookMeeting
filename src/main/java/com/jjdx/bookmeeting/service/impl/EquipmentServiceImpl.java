@@ -13,7 +13,6 @@ import com.jjdx.bookmeeting.model.entity.Equipment;
 import com.jjdx.bookmeeting.model.entity.EquipmentCategory;
 import com.jjdx.bookmeeting.model.entity.MeetingRoom;
 import com.jjdx.bookmeeting.model.entity.RoomEquipment;
-import com.jjdx.bookmeeting.model.enums.EquipmentOperationEnum;
 import com.jjdx.bookmeeting.model.vo.EquipmentVO;
 import com.jjdx.bookmeeting.service.*;
 import com.jjdx.bookmeeting.utils.SqlUtils;
@@ -50,7 +49,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
     // addEquipment 方法增加 categoryId 参数
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Equipment addEquipment(String equipmentName, String equipmentCode, Long categoryId, String icon, Integer status, Long operatorId) {
+    public Equipment addEquipment(String equipmentName, String equipmentCode, Long categoryId, Integer status, Long operatorId) {
         // 校验参数
         if (StringUtils.isBlank(equipmentName)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "设备名称不能为空");
@@ -80,7 +79,6 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         equipment.setEquipmentName(equipmentName);
         equipment.setEquipmentCode(equipmentCode);
         equipment.setCategoryId(categoryId);  // ✅ 新增
-        equipment.setIcon(icon);
         equipment.setStatus(status != null ? status : 0);
 
         boolean saved = save(equipment);
@@ -94,7 +92,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean updateEquipment(Long id, String equipmentName, String equipmentCode, Long categoryId, String icon, Integer status, Long operatorId) {
+    public boolean updateEquipment(Long id, String equipmentName, String equipmentCode, Long categoryId, Integer status, Long operatorId) {
         // 检查设备是否存在
         Equipment equipment = getById(id);
         if (equipment == null) {
@@ -128,7 +126,6 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         updateEquipment.setEquipmentName(equipmentName);
         updateEquipment.setEquipmentCode(equipmentCode);
         updateEquipment.setCategoryId(categoryId);  // ✅ 新增
-        updateEquipment.setIcon(icon);
         updateEquipment.setStatus(status);
 
         return updateById(updateEquipment);

@@ -32,11 +32,6 @@ public class Equipment implements Serializable {
     private String equipmentCode;
 
     /**
-     * 设备图标URL
-     */
-    private String icon;
-
-    /**
      * 状态（0-正常 1-不可用）
      */
     private Integer status;

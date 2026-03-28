@@ -57,13 +57,6 @@ public class MeetingRoomServiceImpl extends ServiceImpl<MeetingRoomMapper, Meeti
         MeetingRoom room = new MeetingRoom();
         BeanUtils.copyProperties(roomAddRequest, room);
 
-        //// 生成位置描述
-        //room.setLocationDesc(generateLocationDesc(
-        //        roomAddRequest.getBuilding(),
-        //        roomAddRequest.getFloor(),
-        //        roomAddRequest.getRoomNumber()
-        //));
-
         // 默认状态为可用
         if (room.getStatus() == null) {
             room.setStatus(0);
@@ -182,8 +175,6 @@ public class MeetingRoomServiceImpl extends ServiceImpl<MeetingRoomMapper, Meeti
 
         return count > 0;
     }
-
-    // MeetingRoomServiceImpl.java - 修改 getQueryWrapper 方法
 
     @Override
     public QueryWrapper<MeetingRoom> getQueryWrapper(RoomQueryParams params) {

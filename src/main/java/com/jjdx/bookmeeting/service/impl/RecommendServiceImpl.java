@@ -1,4 +1,3 @@
-// RecommendServiceImpl.java
 package com.jjdx.bookmeeting.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
@@ -65,9 +64,7 @@ public class RecommendServiceImpl implements RecommendService {
         
         for (MeetingRoom room : rooms) {
             RecommendRoomVO roomVO = calculateRoomScore(room, preference, request, userId);
-            if (roomVO != null) {
-                scoredRooms.add(roomVO);
-            }
+            scoredRooms.add(roomVO);
         }
         
         // 4. 按分数排序
@@ -319,16 +316,9 @@ public class RecommendServiceImpl implements RecommendService {
         vo.setLocationDesc(room.getLocationDesc());
         vo.setCapacity(room.getCapacity());
         vo.setDescription(room.getDescription());
-        vo.setImageUrl(room.getImageUrl());
         vo.setStatus(room.getStatus());
         vo.setCreateTime(room.getCreateTime());
-        
-        // 获取设备列表
-        List<Long> equipmentIds = roomEquipmentService.getEquipmentIdsByRoomId(room.getId());
-        if (CollectionUtils.isNotEmpty(equipmentIds)) {
-            // 这里需要设备服务获取设备详情
-        }
-        
+
         return vo;
     }
 }

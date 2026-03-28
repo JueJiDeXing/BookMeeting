@@ -68,7 +68,6 @@ public class AdminEquipmentController {
                 addRequest.getEquipmentName(),
                 addRequest.getEquipmentCode(),
                 addRequest.getCategoryId(),
-                addRequest.getIcon(),
                 addRequest.getStatus(),
                 operatorId
         );
@@ -153,7 +152,6 @@ public class AdminEquipmentController {
                 updateRequest.getEquipmentName(),
                 updateRequest.getEquipmentCode(),
                 updateRequest.getCategoryId(),  // ✅ 新增
-                updateRequest.getIcon(),
                 updateRequest.getStatus(),
                 operatorId
         );

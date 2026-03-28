@@ -42,11 +42,6 @@ public class UserVO implements Serializable {
     private String role;
 
     /**
-     * 用户头像
-     */
-    private String avatar;
-
-    /**
      * 创建时间
      */
     private Date createTime;

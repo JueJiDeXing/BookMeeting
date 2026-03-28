@@ -40,11 +40,6 @@ public class EquipmentVO implements Serializable {
     private String categoryName;
 
     /**
-     * 图标URL
-     */
-    private String icon;
-
-    /**
      * 状态（0-正常 1-不可用）
      */
     private Integer status;

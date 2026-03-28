@@ -18,7 +18,7 @@ public interface EquipmentService extends IService<Equipment> {
     /**
      更新设备
      */
-    boolean updateEquipment(Long id, String equipmentName, String equipmentCode, Long categoryId, String icon, Integer status, Long operatorId);
+    boolean updateEquipment(Long id, String equipmentName, String equipmentCode, Long categoryId, Integer status, Long operatorId);
 
     /**
      删除设备（逻辑删除）
@@ -64,7 +64,7 @@ public interface EquipmentService extends IService<Equipment> {
     /**
      添加设备
      */
-    Equipment addEquipment(String equipmentName, String equipmentCode, Long categoryId, String icon, Integer status, Long operatorId);
+    Equipment addEquipment(String equipmentName, String equipmentCode, Long categoryId, Integer status, Long operatorId);
 
 
     /**

@@ -47,11 +47,6 @@ public class User implements Serializable {
     private String phone;
 
     /**
-     * 头像URL
-     */
-    private String avatar;
-
-    /**
      * 角色（user/admin/ban）
      */
     private String role;

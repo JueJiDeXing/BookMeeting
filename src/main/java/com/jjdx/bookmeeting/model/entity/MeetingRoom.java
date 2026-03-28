@@ -58,11 +58,6 @@ public class MeetingRoom implements Serializable {
     private String description;
 
     /**
-     * 会议室图片URL
-     */
-    private String imageUrl;
-
-    /**
      * 状态（0-可用 1-维护中 2-被占用）
      */
     private Integer status;
