@@ -7,8 +7,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * 主类（项目启动入口）
- *
+ 主类（项目启动入口）
  */
 @SpringBootApplication
 @MapperScan("com.jjdx.bookmeeting.mapper")

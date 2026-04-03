@@ -1,4 +1,3 @@
-// AdminRoomController.java
 package com.jjdx.bookmeeting.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,12 +7,11 @@ import com.jjdx.bookmeeting.common.ErrorCode;
 import com.jjdx.bookmeeting.common.ResultUtils;
 import com.jjdx.bookmeeting.constant.UserConstant;
 import com.jjdx.bookmeeting.exception.BusinessException;
-import com.jjdx.bookmeeting.exception.ThrowUtils;
 import com.jjdx.bookmeeting.interceptor.aop.annotation.AuthCheck;
 import com.jjdx.bookmeeting.model.dto.admin.room.*;
 import com.jjdx.bookmeeting.model.entity.MeetingRoom;
+import com.jjdx.bookmeeting.model.enums.RoomStatusEnum;
 import com.jjdx.bookmeeting.model.vo.RoomVO;
-import com.jjdx.bookmeeting.service.EquipmentService;
 import com.jjdx.bookmeeting.service.MeetingRoomService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -33,9 +31,6 @@ public class AdminRoomController {
 
     @Resource
     private MeetingRoomService meetingRoomService;
-
-    @Resource
-    private EquipmentService equipmentService;
 
     // region 增删改查
 
@@ -168,12 +163,12 @@ public class AdminRoomController {
         }
 
         // 校验状态值
-        if (statusRequest.getStatus() < 0 || statusRequest.getStatus() > 2) {
+        if (!RoomStatusEnum.isValidEnum(statusRequest.getStatus())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "状态值无效");
         }
 
-        // 如果要将状态改为"可用"(0)，需要检查是否有进行中的预定
-        if (statusRequest.getStatus() == 0) {
+        // 如果要将状态改为"可用"，需要检查是否有进行中的预定
+        if (RoomStatusEnum.isAvailable(statusRequest.getStatus())) {
             boolean hasActiveBookings = meetingRoomService.checkActiveBookings(statusRequest.getId());
             if (hasActiveBookings) {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR, "会议室有进行中的预定，无法设为可用");
@@ -277,9 +272,6 @@ public class AdminRoomController {
         long current = roomQueryRequest.getCurrent();
         long size = roomQueryRequest.getPageSize();
 
-        // 限制爬虫
-        
-
         Page<MeetingRoom> roomPage = meetingRoomService.page(
                 new Page<>(current, size),
                 meetingRoomService.getQueryWrapper(roomQueryRequest)
@@ -295,13 +287,13 @@ public class AdminRoomController {
     }
 
     /**
-     获取所有可用会议室列表（简单列表，用于下拉框）
+     获取所有可用会议室列表
      */
     @GetMapping("/list/all")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<List<MeetingRoom>> listAllAvailableRooms(HttpServletRequest request) {
         List<MeetingRoom> roomList = meetingRoomService.lambdaQuery()
-                .eq(MeetingRoom::getStatus, 0)
+                .eq(MeetingRoom::getStatus, RoomStatusEnum.AVAILABLE)
                 .eq(MeetingRoom::getIsDelete, 0)
                 .orderByAsc(MeetingRoom::getBuilding)
                 .orderByAsc(MeetingRoom::getFloor)
@@ -309,6 +301,8 @@ public class AdminRoomController {
                 .list();
         return ResultUtils.success(roomList);
     }
+
+    // endregion
 
     /**
      校验会议室请求参数

@@ -1,4 +1,3 @@
-// StatisticsController.java
 package com.jjdx.bookmeeting.controller;
 
 import com.jjdx.bookmeeting.common.BaseResponse;
@@ -19,18 +18,18 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 统计接口
+ 统计接口
  */
 @RestController
 @RequestMapping("/admin/statistics")
 @Slf4j
 public class AdminStatisticsController {
-    
+
     @Resource
     private StatisticsService statisticsService;
-    
+
     /**
-     * 获取统计数据
+     获取统计数据
      */
     @PostMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -41,9 +40,9 @@ public class AdminStatisticsController {
         StatisticsVO statistics = statisticsService.getStatistics(request);
         return ResultUtils.success(statistics);
     }
-    
+
     /**
-     * 导出统计报表
+     导出统计报表
      */
     @PostMapping("/export")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -51,12 +50,12 @@ public class AdminStatisticsController {
         if (request == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        
+
         String csvData = statisticsService.exportStatistics(request);
-        
+
         response.setContentType("text/csv; charset=UTF-8");
         response.setHeader("Content-Disposition", "attachment; filename=statistics.csv");
-        
+
         try {
             response.getOutputStream().write(csvData.getBytes(StandardCharsets.UTF_8));
             response.getOutputStream().flush();

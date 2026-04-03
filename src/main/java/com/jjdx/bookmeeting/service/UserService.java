@@ -2,10 +2,10 @@ package com.jjdx.bookmeeting.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.jjdx.bookmeeting.model.dto.admin.UserAddRequest;
-import com.jjdx.bookmeeting.model.dto.admin.UserQueryRequest;
-import com.jjdx.bookmeeting.model.dto.admin.UserResetPasswordRequest;
-import com.jjdx.bookmeeting.model.dto.user.UserUpdateMyRequest;
+import com.jjdx.bookmeeting.model.dto.admin.user.UserAddRequest;
+import com.jjdx.bookmeeting.model.dto.admin.user.UserQueryRequest;
+import com.jjdx.bookmeeting.model.dto.admin.user.UserResetPasswordRequest;
+import com.jjdx.bookmeeting.model.dto.user.user.UserUpdateMyRequest;
 import com.jjdx.bookmeeting.model.entity.User;
 import com.jjdx.bookmeeting.model.vo.LoginUserVO;
 import com.jjdx.bookmeeting.model.vo.UserVO;

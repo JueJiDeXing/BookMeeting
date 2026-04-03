@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import java.io.Serializable;
 
 /**
- * 查询设备分类请求
+ 查询设备分类请求
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -16,7 +16,7 @@ public class EquipmentCategoryQueryRequest extends PageRequest implements Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * 分类名称（模糊查询）
+     分类名称（模糊查询）
      */
     private String categoryName;
 }

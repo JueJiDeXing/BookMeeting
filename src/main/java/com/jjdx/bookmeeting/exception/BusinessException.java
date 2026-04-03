@@ -1,16 +1,16 @@
 package com.jjdx.bookmeeting.exception;
 
 import com.jjdx.bookmeeting.common.ErrorCode;
+import lombok.Getter;
 
 /**
- * 自定义异常类
- *
-
+ 自定义异常类
  */
+@Getter
 public class BusinessException extends RuntimeException {
 
     /**
-     * 错误码
+     错误码
      */
     private final int code;
 
@@ -29,7 +29,4 @@ public class BusinessException extends RuntimeException {
         this.code = errorCode.getCode();
     }
 
-    public int getCode() {
-        return code;
-    }
 }

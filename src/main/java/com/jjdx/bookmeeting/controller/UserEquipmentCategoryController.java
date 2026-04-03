@@ -1,4 +1,3 @@
-// UserEquipmentCategoryController.java
 package com.jjdx.bookmeeting.controller;
 
 import com.jjdx.bookmeeting.common.BaseResponse;
@@ -17,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
- * 用户端-设备分类接口
+ 用户端-设备分类接口
  */
 @RestController
 @RequestMapping("/user/equipment/category")
@@ -28,7 +27,7 @@ public class UserEquipmentCategoryController {
     private EquipmentCategoryService equipmentCategoryService;
 
     /**
-     * 获取所有设备分类（用于用户筛选）
+     获取所有设备分类（用于用户筛选）
      */
     @GetMapping("/list/all")
     public BaseResponse<List<EquipmentCategory>> listAllCategories(HttpServletRequest request) {

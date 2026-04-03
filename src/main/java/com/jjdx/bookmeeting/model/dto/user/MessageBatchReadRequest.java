@@ -6,13 +6,13 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 批量标记消息已读请求
+ 批量标记消息已读请求
  */
 @Data
 public class MessageBatchReadRequest implements Serializable {
 
     /**
-     * 消息ID列表
+     消息ID列表
      */
     private List<Long> ids;
 

@@ -1,4 +1,3 @@
-// MeetingRoomService.java
 package com.jjdx.bookmeeting.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -15,39 +14,39 @@ import org.springframework.beans.BeanUtils;
 import java.util.List;
 
 /**
- * 会议室服务
+ 会议室服务
  */
 public interface MeetingRoomService extends IService<MeetingRoom> {
 
     /**
-     * 添加会议室
+     添加会议室
      */
     MeetingRoom addRoom(RoomAddRequest roomAddRequest);
 
     /**
-     * 更新会议室
+     更新会议室
      */
     boolean updateRoom(RoomUpdateRequest roomUpdateRequest);
 
     /**
-     * 更新会议室设备
+     更新会议室设备
      */
     boolean updateRoomEquipment(Long roomId, List<Long> equipmentIds);
 
     /**
-     * 检查是否有未完成的预定
+     检查是否有未完成的预定
      */
     boolean checkActiveBookings(Long roomId);
 
     // MeetingRoomService.java
 
     /**
-     * 获取查询条件包装器（使用通用参数）
+     获取查询条件包装器（使用通用参数）
      */
     QueryWrapper<MeetingRoom> getQueryWrapper(RoomQueryParams params);
 
     /**
-     * 管理员端获取查询条件包装器
+     管理员端获取查询条件包装器
      */
     default QueryWrapper<MeetingRoom> getQueryWrapper(RoomQueryRequest request) {
         RoomQueryParams params = new RoomQueryParams();
@@ -56,7 +55,7 @@ public interface MeetingRoomService extends IService<MeetingRoom> {
     }
 
     /**
-     * 用户端获取查询条件包装器
+     用户端获取查询条件包装器
      */
     default QueryWrapper<MeetingRoom> getQueryWrapper(UserRoomQueryRequest request) {
         RoomQueryParams params = new RoomQueryParams();
@@ -66,13 +65,14 @@ public interface MeetingRoomService extends IService<MeetingRoom> {
         params.setIsDelete(0);
         return getQueryWrapper(params);
     }
+
     /**
-     * 获取会议室VO（带设备信息）
+     获取会议室VO（带设备信息）
      */
     RoomVO getRoomVO(MeetingRoom room);
 
     /**
-     * 生成位置描述
+     生成位置描述
      */
     default String generateLocationDesc(String building, Integer floor, String roomNumber) {
         return building + " " + floor + "楼 " + roomNumber;

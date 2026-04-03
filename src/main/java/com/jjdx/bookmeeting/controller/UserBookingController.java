@@ -5,10 +5,10 @@ import com.jjdx.bookmeeting.common.BaseResponse;
 import com.jjdx.bookmeeting.common.ErrorCode;
 import com.jjdx.bookmeeting.common.ResultUtils;
 import com.jjdx.bookmeeting.exception.BusinessException;
-import com.jjdx.bookmeeting.exception.ThrowUtils;
 import com.jjdx.bookmeeting.model.dto.user.DateRangeRequest;
 import com.jjdx.bookmeeting.model.dto.user.booking.*;
 import com.jjdx.bookmeeting.model.entity.BookingRecord;
+import com.jjdx.bookmeeting.model.enums.BookingStatusEnum;
 import com.jjdx.bookmeeting.model.vo.BookingVO;
 import com.jjdx.bookmeeting.service.BookingRecordService;
 import com.jjdx.bookmeeting.service.UserService;
@@ -130,7 +130,7 @@ public class UserBookingController {
         }
 
         // 只能结束进行中的会议
-        if (booking.getStatus() != 1) {
+        if (booking.getStatus() != BookingStatusEnum.IN_PROGRESS.getValue()) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "只能结束进行中的会议");
         }
 
@@ -158,6 +158,7 @@ public class UserBookingController {
 
         return ResultUtils.success(hasConflict);
     }
+
     @PostMapping("/list/by-date")
     public BaseResponse<List<BookingRecord>> listBookingsByDate(@RequestBody DateRangeRequest request) {
         if (request == null || request.getStartTime() == null || request.getEndTime() == null) {
@@ -166,11 +167,15 @@ public class UserBookingController {
 
         List<BookingRecord> bookings = bookingRecordService.lambdaQuery()
                 .between(BookingRecord::getStartTime, request.getStartTime(), request.getEndTime())
-                .in(BookingRecord::getStatus, 0, 1, 2) // 待签到、进行中、已完成
+                .in(BookingRecord::getStatus,
+                        BookingStatusEnum.PENDING,
+                        BookingStatusEnum.IN_PROGRESS,
+                        BookingStatusEnum.COMPLETED) // 待签到、进行中、已完成
                 .list();
 
         return ResultUtils.success(bookings);
     }
+
     /**
      分页获取当前用户的预定列表
      */
@@ -247,7 +252,10 @@ public class UserBookingController {
         List<BookingRecord> bookings = bookingRecordService.lambdaQuery()
                 .eq(BookingRecord::getRoomId, roomBookingsRequest.getRoomId())
                 .between(BookingRecord::getStartTime, startTime, endTime)
-                .in(BookingRecord::getStatus, 0, 1, 2)
+                .in(BookingRecord::getStatus,
+                        BookingStatusEnum.PENDING,
+                        BookingStatusEnum.IN_PROGRESS,
+                        BookingStatusEnum.COMPLETED)
                 .orderByAsc(BookingRecord::getStartTime)
                 .list();
 
@@ -257,8 +265,6 @@ public class UserBookingController {
 
         return ResultUtils.success(bookingVOList);
     }
-
-    // ==================== 参数校验 ====================
 
     private void validateBookingAddRequest(UserBookingAddRequest request) {
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
@@ -306,8 +312,8 @@ public class UserBookingController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议时长不能少于30分钟");
         }
 
-        if (request.getRemindBefore() != null && (request.getRemindBefore() < 0 || request.getRemindBefore() > 1440)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "提醒时间必须在0-1440分钟之间");
+        if (request.getRemindBefore() != null && (request.getRemindBefore() < 0 || request.getRemindBefore() > 24 * 60)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "提醒时间必须在0-24小时之间");
         }
     }
 }

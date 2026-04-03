@@ -1,4 +1,3 @@
-// MeetingRoomServiceImpl.java
 package com.jjdx.bookmeeting.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -9,13 +8,12 @@ import com.jjdx.bookmeeting.constant.CommonConstant;
 import com.jjdx.bookmeeting.exception.BusinessException;
 import com.jjdx.bookmeeting.mapper.MeetingRoomMapper;
 import com.jjdx.bookmeeting.model.dto.admin.room.RoomAddRequest;
-import com.jjdx.bookmeeting.model.dto.admin.room.RoomQueryRequest;
 import com.jjdx.bookmeeting.model.dto.admin.room.RoomUpdateRequest;
-import com.jjdx.bookmeeting.model.dto.user.room.UserRoomQueryRequest;
 import com.jjdx.bookmeeting.model.entity.BookingRecord;
 import com.jjdx.bookmeeting.model.entity.Equipment;
 import com.jjdx.bookmeeting.model.entity.MeetingRoom;
 import com.jjdx.bookmeeting.model.entity.RoomEquipment;
+import com.jjdx.bookmeeting.model.enums.RoomStatusEnum;
 import com.jjdx.bookmeeting.model.vo.RoomVO;
 import com.jjdx.bookmeeting.service.BookingRecordService;
 import com.jjdx.bookmeeting.service.EquipmentService;
@@ -59,7 +57,7 @@ public class MeetingRoomServiceImpl extends ServiceImpl<MeetingRoomMapper, Meeti
 
         // 默认状态为可用
         if (room.getStatus() == null) {
-            room.setStatus(0);
+            room.setStatus(RoomStatusEnum.AVAILABLE.getValue());
         }
 
         boolean saved = save(room);
@@ -212,7 +210,7 @@ public class MeetingRoomServiceImpl extends ServiceImpl<MeetingRoomMapper, Meeti
         queryWrapper.ge(minCapacity != null, "capacity", minCapacity);
         queryWrapper.le(maxCapacity != null, "capacity", maxCapacity);
 
-        // ✅ 用户端：按设备分类筛选（必须同时包含所有指定分类的设备）
+        // 用户端：按设备分类筛选（必须同时包含所有指定分类的设备）
         if (CollectionUtils.isNotEmpty(categoryIds)) {
             // 子查询：找出包含所有指定分类设备的会议室ID
             // SELECT re.room_id

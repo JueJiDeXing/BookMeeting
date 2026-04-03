@@ -4,12 +4,13 @@ import com.jjdx.bookmeeting.common.BaseResponse;
 import com.jjdx.bookmeeting.common.ErrorCode;
 import com.jjdx.bookmeeting.common.ResultUtils;
 import com.jjdx.bookmeeting.exception.BusinessException;
-import com.jjdx.bookmeeting.model.dto.user.UserLoginRequest;
-import com.jjdx.bookmeeting.model.dto.user.UserRegisterRequest;
-import com.jjdx.bookmeeting.model.dto.user.UserUpdateMyRequest;
-import com.jjdx.bookmeeting.model.dto.user.UserUpdatePasswordRequest;
+import com.jjdx.bookmeeting.model.dto.user.user.UserLoginRequest;
+import com.jjdx.bookmeeting.model.dto.user.user.UserRegisterRequest;
+import com.jjdx.bookmeeting.model.dto.user.user.UserUpdateMyRequest;
+import com.jjdx.bookmeeting.model.dto.user.user.UserUpdatePasswordRequest;
 import com.jjdx.bookmeeting.model.entity.User;
 import com.jjdx.bookmeeting.model.vo.LoginUserVO;
+import com.jjdx.bookmeeting.model.vo.UserVO;
 import com.jjdx.bookmeeting.service.UserService;
 import com.jjdx.bookmeeting.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  用户接口
@@ -110,6 +113,7 @@ public class UserController {
         User user = userService.getLoginUser(request);
         return ResultUtils.success(userService.getLoginUserVO(user));
     }
+
     // region 更新信息
 
     /**
@@ -140,15 +144,10 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
         }
 
-        // 3. 校验新密码长度
-        if (newPassword.length() < 8) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码不能少于8位");
-        }
-
-        // 4. 获取当前登录用户
+        // 3. 获取当前登录用户
         User loginUser = userService.getLoginUser(request);
 
-        // 5. 调用service更新密码
+        // 4. 调用service更新密码
         boolean result = userService.updatePassword(loginUser.getId(), oldPassword, newPassword, checkPassword);
 
         return ResultUtils.success(result);
@@ -168,21 +167,44 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
 
-        // 获取当前登录用户
-        User loginUser = userService.getLoginUser(request);
-
         // 校验数据
         if (StringUtils.isNotBlank(userUpdateMyRequest.getUserName())
                 && userUpdateMyRequest.getUserName().length() > 50) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名称不能超过50个字符");
         }
 
+        // 获取当前登录用户
+        Long userId = Long.parseLong(request.getAttribute("id").toString());
         // 更新用户信息
-        boolean result = userService.updateUserInfo(loginUser.getId(), userUpdateMyRequest);
+        boolean result = userService.updateUserInfo(userId, userUpdateMyRequest);
         return ResultUtils.success(result);
     }
 
     // endregion
 
+    /**
+     获取所有可用用户列表
+     */
+    @GetMapping("/list/all")
+    public BaseResponse<List<UserVO>> listAllUsers(HttpServletRequest request) {
+        List<User> userList = userService.lambdaQuery()
+                .eq(User::getIsDelete, 0)
+                .ne(User::getRole, "ban") // 排除禁用账号
+                .orderByAsc(User::getUserName)
+                .list();
 
+        List<UserVO> userVOList = userList.stream()
+                .map(user -> {
+                    UserVO vo = new UserVO();
+                    vo.setId(user.getId());
+                    vo.setUserAccount(user.getUserAccount());
+                    vo.setUserName(user.getUserName());
+                    vo.setEmail(user.getEmail());
+                    vo.setPhone(user.getPhone());
+                    return vo;
+                })
+                .collect(Collectors.toList());
+
+        return ResultUtils.success(userVOList);
+    }
 }

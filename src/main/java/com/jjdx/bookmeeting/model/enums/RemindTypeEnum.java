@@ -1,8 +1,11 @@
 package com.jjdx.bookmeeting.model.enums;
 
+import lombok.Getter;
+
 /**
- * 提醒方式枚举
+ 提醒方式枚举
  */
+@Getter
 public enum RemindTypeEnum {
 
     SITE_MESSAGE(0, "站内信"),
@@ -17,11 +20,4 @@ public enum RemindTypeEnum {
         this.description = description;
     }
 
-    public int getValue() {
-        return value;
-    }
-
-    public String getDescription() {
-        return description;
-    }
 }

@@ -19,11 +19,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
- * 设备分类服务实现
+ 设备分类服务实现
  */
 @Service
 @Slf4j
-public class EquipmentCategoryServiceImpl extends ServiceImpl<EquipmentCategoryMapper, EquipmentCategory> 
+public class EquipmentCategoryServiceImpl extends ServiceImpl<EquipmentCategoryMapper, EquipmentCategory>
         implements EquipmentCategoryService {
 
     @Resource
@@ -119,7 +119,7 @@ public class EquipmentCategoryServiceImpl extends ServiceImpl<EquipmentCategoryM
 
         // 检查是否被使用
         if (isCategoryInUse(categoryId)) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, 
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,
                     "分类【" + category.getCategoryName() + "】下存在设备，无法删除");
         }
 

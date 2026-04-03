@@ -10,10 +10,9 @@ import com.jjdx.bookmeeting.exception.BusinessException;
 import com.jjdx.bookmeeting.interceptor.aop.annotation.AuthCheck;
 import com.jjdx.bookmeeting.model.dto.admin.equipment.*;
 import com.jjdx.bookmeeting.model.entity.Equipment;
+import com.jjdx.bookmeeting.model.enums.EquipmentStatusEnum;
 import com.jjdx.bookmeeting.model.vo.EquipmentVO;
 import com.jjdx.bookmeeting.service.EquipmentService;
-import com.jjdx.bookmeeting.service.MeetingRoomService;
-import com.jjdx.bookmeeting.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,14 +32,7 @@ public class AdminEquipmentController {
     @Resource
     private EquipmentService equipmentService;
 
-    @Resource
-    private UserService userService;
-
-    @Resource
-    private MeetingRoomService meetingRoomService;
-
     // region 增删改查
-
 
     @PostMapping("/add")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -74,6 +66,7 @@ public class AdminEquipmentController {
 
         return ResultUtils.success(equipment.getId());
     }
+
     /**
      删除设备
      */
@@ -145,19 +138,21 @@ public class AdminEquipmentController {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "设备代码已存在");
             }
         }
+
         Long operatorId = Long.parseLong(request.getAttribute("id").toString());
 
         boolean updated = equipmentService.updateEquipment(
                 updateRequest.getId(),
                 updateRequest.getEquipmentName(),
                 updateRequest.getEquipmentCode(),
-                updateRequest.getCategoryId(),  // ✅ 新增
+                updateRequest.getCategoryId(),
                 updateRequest.getStatus(),
                 operatorId
         );
 
         return ResultUtils.success(updated);
     }
+
     /**
      更新设备状态
      */
@@ -176,12 +171,12 @@ public class AdminEquipmentController {
         }
 
         // 校验状态值
-        if (statusRequest.getStatus() < 0 || statusRequest.getStatus() > 1) {
+        if (EquipmentStatusEnum.isValidEnum(statusRequest.getStatus())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "状态值无效");
         }
 
-        // 如果要将状态改为不可用(1)，需要检查设备是否正在使用
-        if (statusRequest.getStatus() == 1 && equipmentService.isEquipmentInUse(statusRequest.getId())) {
+        // 如果要将状态改为不可用，需要检查设备是否正在使用
+        if (EquipmentStatusEnum.isUnavailable(statusRequest.getStatus()) && equipmentService.isEquipmentInUse(statusRequest.getId())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "设备正在被使用，无法设为不可用");
         }
 
@@ -217,7 +212,7 @@ public class AdminEquipmentController {
         }
 
         // 检查设备状态是否正常
-        if (equipment.getStatus() != 0) {
+        if (!EquipmentStatusEnum.isNormal(equipment.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "设备状态异常，无法移入");
         }
 
@@ -350,9 +345,6 @@ public class AdminEquipmentController {
         long current = queryRequest.getCurrent();
         long size = queryRequest.getPageSize();
 
-        // 限制爬虫
-        
-
         Page<Equipment> equipmentPage = equipmentService.page(
                 new Page<>(current, size),
                 equipmentService.getQueryWrapper(queryRequest)
@@ -390,7 +382,7 @@ public class AdminEquipmentController {
     }
 
     /**
-     获取所有可用设备列表（用于下拉框）
+     获取所有可用设备列表
      */
     @GetMapping("/list/all")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -420,7 +412,7 @@ public class AdminEquipmentController {
         if (request.getEquipmentCode().length() > 50) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "设备代码不能超过50个字符");
         }
-        if (request.getStatus() != null && (request.getStatus() < 0 || request.getStatus() > 1)) {
+        if (request.getStatus() != null && !EquipmentStatusEnum.isValidEnum(request.getStatus())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "状态值无效");
         }
     }
@@ -445,7 +437,7 @@ public class AdminEquipmentController {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "设备代码不能超过50个字符");
             }
         }
-        if (request.getStatus() != null && (request.getStatus() < 0 || request.getStatus() > 1)) {
+        if (request.getStatus() != null && !EquipmentStatusEnum.isValidEnum(request.getStatus())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "状态值无效");
         }
         if (request.getCategoryId() != null && request.getCategoryId() <= 0) {

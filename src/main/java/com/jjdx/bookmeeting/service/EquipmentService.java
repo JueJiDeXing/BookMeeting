@@ -1,4 +1,3 @@
-// EquipmentService.java
 package com.jjdx.bookmeeting.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;

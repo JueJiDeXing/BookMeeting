@@ -1,4 +1,3 @@
-// BookingRecordServiceImpl.java
 package com.jjdx.bookmeeting.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -9,25 +8,16 @@ import com.jjdx.bookmeeting.common.ErrorCode;
 import com.jjdx.bookmeeting.constant.CommonConstant;
 import com.jjdx.bookmeeting.exception.BusinessException;
 import com.jjdx.bookmeeting.mapper.BookingRecordMapper;
-import com.jjdx.bookmeeting.model.dto.admin.booking.BookingAddRequest;
 import com.jjdx.bookmeeting.model.dto.admin.booking.BookingCalendarRequest;
-import com.jjdx.bookmeeting.model.dto.admin.booking.BookingQueryRequest;
 import com.jjdx.bookmeeting.model.dto.admin.booking.BookingUpdateRequest;
-import com.jjdx.bookmeeting.model.entity.AttendeeResponse;
-import com.jjdx.bookmeeting.model.entity.BookingRecord;
-import com.jjdx.bookmeeting.model.entity.MeetingRoom;
-import com.jjdx.bookmeeting.model.entity.RemindTask;
-import com.jjdx.bookmeeting.model.entity.User;
+import com.jjdx.bookmeeting.model.entity.*;
+import com.jjdx.bookmeeting.model.enums.AttendeeResponseStatusEnum;
 import com.jjdx.bookmeeting.model.enums.BookingStatusEnum;
 import com.jjdx.bookmeeting.model.enums.RemindStatusEnum;
 import com.jjdx.bookmeeting.model.enums.RemindTypeEnum;
 import com.jjdx.bookmeeting.model.vo.AttendeeVO;
 import com.jjdx.bookmeeting.model.vo.BookingVO;
-import com.jjdx.bookmeeting.service.AttendeeResponseService;
-import com.jjdx.bookmeeting.service.BookingRecordService;
-import com.jjdx.bookmeeting.service.MeetingRoomService;
-import com.jjdx.bookmeeting.service.RemindTaskService;
-import com.jjdx.bookmeeting.service.UserService;
+import com.jjdx.bookmeeting.service.*;
 import com.jjdx.bookmeeting.service.params.BookingAddParams;
 import com.jjdx.bookmeeting.service.params.BookingQueryParams;
 import com.jjdx.bookmeeting.utils.SqlUtils;
@@ -48,7 +38,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 预定记录服务实现
+ 预定记录服务实现
  */
 @Service
 @Slf4j
@@ -66,141 +56,15 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
 
     @Resource
     private RemindTaskService remindTaskService;
-    /**
-     * 校验预定创建请求
-     */
-    private void validateBookingAddRequest(BookingAddRequest request) {
-        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议主题不能为空");
-        }
-        if (request.getTitle().length() > 100) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议主题不能超过100个字符");
-        }
-        if (request.getRoomId() == null || request.getRoomId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请选择会议室");
-        }
-        if (request.getUserId() == null || request.getUserId() <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请选择预定人");
-        }
-        if (request.getStartTime() == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请选择开始时间");
-        }
-        if (request.getEndTime() == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请选择结束时间");
-        }
 
-        // 校验时间是否为30分钟的倍数
-        LocalDateTime start = request.getStartTime();
-        LocalDateTime end = request.getEndTime();
-
-        // 校验分钟是否为00或30
-        if (start.getMinute() != 0 && start.getMinute() != 30) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "开始时间必须为整点或半点（如 14:00 或 14:30）");
-        }
-        if (end.getMinute() != 0 && end.getMinute() != 30) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "结束时间必须为整点或半点（如 15:00 或 15:30）");
-        }
-
-        // 校验秒和纳秒是否为0
-        if (start.getSecond() != 0 || start.getNano() != 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "开始时间秒数必须为0");
-        }
-        if (end.getSecond() != 0 || end.getNano() != 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "结束时间秒数必须为0");
-        }
-
-        // 计算时长是否为30分钟的倍数
-        long minutes = java.time.Duration.between(start, end).toMinutes();
-        if (minutes % 30 != 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议时长必须为30分钟的倍数");
-        }
-
-        // 校验时长是否小于30分钟
-        if (minutes < 30) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议时长不能少于30分钟");
-        }
-
-        if (request.getRemindBefore() != null && (request.getRemindBefore() < 0 || request.getRemindBefore() > 1440)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "提醒时间必须在0-1440分钟之间");
-        }
-    }
-
-    /**
-     * 校验预定更新请求
-     */
-    private void validateBookingUpdateRequest(BookingUpdateRequest request) {
-        if (request.getTitle() != null) {
-            if (request.getTitle().trim().isEmpty()) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议主题不能为空");
-            }
-            if (request.getTitle().length() > 100) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议主题不能超过100个字符");
-            }
-        }
-
-        // 如果同时修改了开始时间和结束时间
-        if (request.getStartTime() != null && request.getEndTime() != null) {
-            LocalDateTime start = request.getStartTime();
-            LocalDateTime end = request.getEndTime();
-
-            // 校验分钟是否为00或30
-            if (start.getMinute() != 0 && start.getMinute() != 30) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "开始时间必须为整点或半点（如 14:00 或 14:30）");
-            }
-            if (end.getMinute() != 0 && end.getMinute() != 30) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "结束时间必须为整点或半点（如 15:00 或 15:30）");
-            }
-
-            // 校验秒和纳秒是否为0
-            if (start.getSecond() != 0 || start.getNano() != 0) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "开始时间秒数必须为0");
-            }
-            if (end.getSecond() != 0 || end.getNano() != 0) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "结束时间秒数必须为0");
-            }
-
-            // 计算时长是否为30分钟的倍数
-            long minutes = java.time.Duration.between(start, end).toMinutes();
-            if (minutes % 30 != 0) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议时长必须为30分钟的倍数");
-            }
-
-            // 校验时长是否小于30分钟
-            if (minutes < 30) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议时长不能少于30分钟");
-            }
-        }
-        // 如果只修改了开始时间
-        else if (request.getStartTime() != null) {
-            LocalDateTime start = request.getStartTime();
-            if (start.getMinute() != 0 && start.getMinute() != 30) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "开始时间必须为整点或半点（如 14:00 或 14:30）");
-            }
-            if (start.getSecond() != 0 || start.getNano() != 0) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "开始时间秒数必须为0");
-            }
-        }
-        // 如果只修改了结束时间
-        else if (request.getEndTime() != null) {
-            LocalDateTime end = request.getEndTime();
-            if (end.getMinute() != 0 && end.getMinute() != 30) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "结束时间必须为整点或半点（如 15:00 或 15:30）");
-            }
-            if (end.getSecond() != 0 || end.getNano() != 0) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "结束时间秒数必须为0");
-            }
-        }
-
-        if (request.getRemindBefore() != null && (request.getRemindBefore() < 0 || request.getRemindBefore() > 1440)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "提醒时间必须在0-1440分钟之间");
-        }
-    }
     @Override
     public boolean checkRoomConflict(Long roomId, LocalDateTime startTime, LocalDateTime endTime, Long excludeBookingId) {
         LambdaQueryWrapper<BookingRecord> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BookingRecord::getRoomId, roomId)
                 .ne(excludeBookingId != null, BookingRecord::getId, excludeBookingId)
-                .in(BookingRecord::getStatus, 0, 1) // 待签到和进行中的预定
+                .in(BookingRecord::getStatus,
+                        BookingStatusEnum.PENDING.getValue(),
+                        BookingStatusEnum.IN_PROGRESS.getValue()) // 待签到和进行中的预定
                 .and(w -> w.between(BookingRecord::getStartTime, startTime, endTime)
                         .or().between(BookingRecord::getEndTime, startTime, endTime)
                         .or().apply("start_time <= {0} and end_time >= {1}", startTime, endTime));
@@ -212,7 +76,9 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
     public boolean checkUserHasActiveBooking(Long userId) {
         LambdaQueryWrapper<BookingRecord> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BookingRecord::getUserId, userId)
-                .in(BookingRecord::getStatus, 0, 1) // 待签到和进行中
+                .in(BookingRecord::getStatus,
+                        BookingStatusEnum.PENDING.getValue(),
+                        BookingStatusEnum.IN_PROGRESS.getValue()) // 待签到和进行中
                 .gt(BookingRecord::getEndTime, LocalDateTime.now());
 
         return count(wrapper) > 0;
@@ -222,7 +88,9 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
     public List<BookingRecord> getActiveBookingsByRoomId(Long roomId) {
         LambdaQueryWrapper<BookingRecord> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BookingRecord::getRoomId, roomId)
-                .in(BookingRecord::getStatus, 0, 1) // 待签到和进行中
+                .in(BookingRecord::getStatus,
+                        BookingStatusEnum.PENDING.getValue(),
+                        BookingStatusEnum.IN_PROGRESS.getValue()) // 待签到和进行中
                 .orderByAsc(BookingRecord::getStartTime);
 
         return list(wrapper);
@@ -248,7 +116,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         LocalDateTime end = remindTime.plusMinutes(5);
 
         LambdaQueryWrapper<BookingRecord> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BookingRecord::getStatus, 0) // 待签到
+        wrapper.eq(BookingRecord::getStatus, BookingStatusEnum.PENDING.getValue()) // 待签到
                 .between(BookingRecord::getStartTime, start, end);
 
         return list(wrapper);
@@ -261,20 +129,20 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
 
         // 1. 将已过开始时间且未签到的预定状态更新为"未签到超时"
         LambdaQueryWrapper<BookingRecord> timeoutWrapper = new LambdaQueryWrapper<>();
-        timeoutWrapper.eq(BookingRecord::getStatus, 0) // 待签到
+        timeoutWrapper.eq(BookingRecord::getStatus, BookingStatusEnum.PENDING.getValue()) // 待签到
                 .lt(BookingRecord::getStartTime, now);
 
         BookingRecord timeoutUpdate = new BookingRecord();
-        timeoutUpdate.setStatus(4); // 4-未签到超时
+        timeoutUpdate.setStatus(BookingStatusEnum.TIMEOUT.getValue()); // 未签到超时
         update(timeoutUpdate, timeoutWrapper);
 
         // 2. 将已过结束时间的进行中预定更新为"已完成"
         LambdaQueryWrapper<BookingRecord> completeWrapper = new LambdaQueryWrapper<>();
-        completeWrapper.eq(BookingRecord::getStatus, 1) // 进行中
+        completeWrapper.eq(BookingRecord::getStatus, BookingStatusEnum.IN_PROGRESS.getValue()) // 进行中
                 .lt(BookingRecord::getEndTime, now);
 
         BookingRecord completeUpdate = new BookingRecord();
-        completeUpdate.setStatus(2); // 2-已完成
+        completeUpdate.setStatus(BookingStatusEnum.COMPLETED.getValue()); // 已完成
         update(completeUpdate, completeWrapper);
 
         log.info("定时任务：更新预定状态完成");
@@ -294,7 +162,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         }
 
         // 只能取消待签到的预定
-        if (booking.getStatus() != 0) {
+        if (!BookingStatusEnum.isPending(booking.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "只能取消待签到的预定");
         }
 
@@ -303,7 +171,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "会议已开始，无法取消");
         }
 
-        booking.setStatus(3); // 3-已取消
+        booking.setStatus(BookingStatusEnum.CANCELLED.getValue()); // 已取消
         return updateById(booking);
     }
 
@@ -315,7 +183,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "预定记录不存在");
         }
 
-        booking.setStatus(2); // 2-已完成
+        booking.setStatus(BookingStatusEnum.COMPLETED.getValue()); // 已完成
         booking.setActualEnd(LocalDateTime.now());
         return updateById(booking);
     }
@@ -334,7 +202,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         }
 
         // 检查会议状态
-        if (booking.getStatus() != 0) {
+        if (!BookingStatusEnum.isPending(booking.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "该会议无法签到");
         }
 
@@ -345,7 +213,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "不在签到时间内");
         }
 
-        booking.setStatus(1); // 1-进行中
+        booking.setStatus(BookingStatusEnum.IN_PROGRESS.getValue()); // 进行中
         booking.setActualStart(now);
         return updateById(booking);
     }
@@ -356,7 +224,10 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         wrapper.eq(BookingRecord::getRoomId, roomId)
                 .ge(startTime != null, BookingRecord::getStartTime, startTime)
                 .le(endTime != null, BookingRecord::getEndTime, endTime)
-                .in(BookingRecord::getStatus, 0, 1, 2); // 待签到、进行中、已完成
+                .in(BookingRecord::getStatus,
+                        BookingStatusEnum.PENDING.getValue(),
+                        BookingStatusEnum.IN_PROGRESS.getValue(),
+                        BookingStatusEnum.COMPLETED.getValue()); // 待签到、进行中、已完成
 
         return (int) count(wrapper);
     }
@@ -380,7 +251,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         BeanUtils.copyProperties(params, booking);
 
         // 设置默认值
-        booking.setStatus(0); // 待签到
+        booking.setStatus(BookingStatusEnum.PENDING.getValue()); // 待签到
         if (booking.getRemindBefore() == null) {
             booking.setRemindBefore(15);
         }
@@ -426,7 +297,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         }
 
         // 2. 只能更新待签到的预定
-        if (oldBooking.getStatus() != 0) {
+        if (!BookingStatusEnum.isPending(oldBooking.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "只能更新待签到的预定");
         }
 
@@ -481,7 +352,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         }
 
         // 只能取消待签到的预定
-        if (booking.getStatus() != 0) {
+        if (!BookingStatusEnum.isPending(booking.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "只能取消待签到的预定");
         }
 
@@ -491,7 +362,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         }
 
         // 更新状态为已取消
-        booking.setStatus(3); // 3-已取消
+        booking.setStatus(BookingStatusEnum.CANCELLED.getValue()); // 已取消
         boolean updated = updateById(booking);
 
         if (updated) {
@@ -537,11 +408,11 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         }
 
         // 只能结束进行中的预定
-        if (booking.getStatus() != 1) {
+        if (!BookingStatusEnum.isInProgress(booking.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "只能结束进行中的会议");
         }
 
-        booking.setStatus(2); // 2-已完成
+        booking.setStatus(BookingStatusEnum.COMPLETED.getValue()); // 已完成
         booking.setActualEnd(LocalDateTime.now());
 
         boolean updated = updateById(booking);
@@ -561,14 +432,14 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
         }
 
         // 只能提醒待签到的会议
-        if (booking.getStatus() != 0) {
+        if (!BookingStatusEnum.isPending(booking.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "只能提醒待签到的会议");
         }
 
         // 查询待发送的提醒任务
         List<RemindTask> remindTasks = remindTaskService.lambdaQuery()
                 .eq(RemindTask::getBookingId, bookingId)
-                .eq(RemindTask::getStatus, 0) // 待发送
+                .eq(RemindTask::getStatus, RemindStatusEnum.PENDING.getValue()) // 待发送
                 .list();
 
         if (CollectionUtils.isEmpty(remindTasks)) {
@@ -577,7 +448,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
 
         // 更新提醒任务状态为已发送
         for (RemindTask task : remindTasks) {
-            task.setStatus(1); // 已发送
+            task.setStatus(RemindStatusEnum.SENT.getValue()); // 已发送
             remindTaskService.updateById(task);
 
             // TODO: 实际发送提醒（邮件、站内信等）
@@ -816,7 +687,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
     // ==================== 私有方法 ====================
 
     /**
-     * 创建参会人员响应记录
+     创建参会人员响应记录
      */
     private void createAttendeeResponses(Long bookingId, List<Long> attendeeIds) {
         if (CollectionUtils.isEmpty(attendeeIds)) {
@@ -828,7 +699,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
                     AttendeeResponse response = new AttendeeResponse();
                     response.setBookingId(bookingId);
                     response.setUserId(attendeeId);
-                    response.setStatus(0); // 待确认
+                    response.setStatus(AttendeeResponseStatusEnum.PENDING.getValue()); // 待确认
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -837,7 +708,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
     }
 
     /**
-     * 创建提醒任务
+     创建提醒任务
      */
     private void createRemindTask(BookingRecord booking) {
         if (booking.getRemindBefore() == null || booking.getRemindBefore() <= 0) {
@@ -875,7 +746,7 @@ public class BookingRecordServiceImpl extends ServiceImpl<BookingRecordMapper, B
     }
 
     /**
-     * 解析参会人员ID字符串
+     解析参会人员ID字符串
      */
     private List<Long> parseAttendeeIds(String attendeesIdStr) {
         List<Long> attendeeIds = new ArrayList<>();

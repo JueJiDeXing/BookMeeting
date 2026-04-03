@@ -3,7 +3,7 @@ package com.jjdx.bookmeeting.model.enums;
 import lombok.Getter;
 
 /**
- * 设备操作类型枚举
+ 设备操作类型枚举
  */
 @Getter
 public enum EquipmentOperationEnum {

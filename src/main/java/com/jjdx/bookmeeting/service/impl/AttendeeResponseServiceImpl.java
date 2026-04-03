@@ -7,6 +7,7 @@ import com.jjdx.bookmeeting.common.ErrorCode;
 import com.jjdx.bookmeeting.exception.BusinessException;
 import com.jjdx.bookmeeting.mapper.AttendeeResponseMapper;
 import com.jjdx.bookmeeting.model.entity.AttendeeResponse;
+import com.jjdx.bookmeeting.model.enums.AttendeeResponseStatusEnum;
 import com.jjdx.bookmeeting.service.AttendeeResponseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 参会人员响应服务实现
+ 参会人员响应服务实现
  */
 @Service
 @Slf4j
@@ -44,7 +45,7 @@ public class AttendeeResponseServiceImpl extends ServiceImpl<AttendeeResponseMap
     @Transactional(rollbackFor = Exception.class)
     public boolean updateStatus(Long bookingId, Long userId, Integer status, String remark) {
         // 检查参数
-        if (status == null || (status < 0 || status > 2)) {
+        if (status == null || !AttendeeResponseStatusEnum.isValidEnum(status)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "状态值无效");
         }
 
@@ -87,7 +88,7 @@ public class AttendeeResponseServiceImpl extends ServiceImpl<AttendeeResponseMap
                     AttendeeResponse response = new AttendeeResponse();
                     response.setBookingId(bookingId);
                     response.setUserId(attendeeId);
-                    response.setStatus(0); // 默认待确认
+                    response.setStatus(AttendeeResponseStatusEnum.PENDING.getValue()); // 默认待确认
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -112,7 +113,7 @@ public class AttendeeResponseServiceImpl extends ServiceImpl<AttendeeResponseMap
     public int countConfirmedByBookingId(Long bookingId) {
         LambdaQueryWrapper<AttendeeResponse> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(AttendeeResponse::getBookingId, bookingId)
-                .eq(AttendeeResponse::getStatus, 1); // 1-已确认
+                .eq(AttendeeResponse::getStatus, AttendeeResponseStatusEnum.CONFIRMED.getValue()); // 已确认
         return (int) count(wrapper);
     }
 
@@ -121,7 +122,7 @@ public class AttendeeResponseServiceImpl extends ServiceImpl<AttendeeResponseMap
         LambdaQueryWrapper<AttendeeResponse> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(AttendeeResponse::getBookingId, bookingId)
                 .eq(AttendeeResponse::getUserId, userId)
-                .ne(AttendeeResponse::getStatus, 0); // 不是待确认状态
+                .ne(AttendeeResponse::getStatus, AttendeeResponseStatusEnum.PENDING.getValue()); // 不是待确认状态
         return count(wrapper) > 0;
     }
 
@@ -129,7 +130,7 @@ public class AttendeeResponseServiceImpl extends ServiceImpl<AttendeeResponseMap
     public List<Long> getUnrespondedUserIds(Long bookingId) {
         LambdaQueryWrapper<AttendeeResponse> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(AttendeeResponse::getBookingId, bookingId)
-                .eq(AttendeeResponse::getStatus, 0); // 待确认
+                .eq(AttendeeResponse::getStatus, AttendeeResponseStatusEnum.PENDING.getValue()); // 待确认
 
         List<AttendeeResponse> unrespondedList = list(wrapper);
         return unrespondedList.stream()

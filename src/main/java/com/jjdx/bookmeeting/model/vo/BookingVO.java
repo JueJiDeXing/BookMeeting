@@ -1,7 +1,6 @@
 package com.jjdx.bookmeeting.model.vo;
 
 import com.jjdx.bookmeeting.model.entity.BookingRecord;
-import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

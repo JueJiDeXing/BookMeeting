@@ -2,9 +2,6 @@ package com.jjdx.bookmeeting.model.vo.admin.statistics;
 
 import lombok.Data;
 
-import java.util.*;
-
-// UserRankData.java
 @Data
 public class UserRankData {
     /**

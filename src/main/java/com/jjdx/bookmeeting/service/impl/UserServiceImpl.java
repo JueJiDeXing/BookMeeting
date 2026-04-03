@@ -7,10 +7,10 @@ import com.jjdx.bookmeeting.common.ErrorCode;
 import com.jjdx.bookmeeting.constant.CommonConstant;
 import com.jjdx.bookmeeting.exception.BusinessException;
 import com.jjdx.bookmeeting.mapper.UserMapper;
-import com.jjdx.bookmeeting.model.dto.admin.UserAddRequest;
-import com.jjdx.bookmeeting.model.dto.admin.UserQueryRequest;
-import com.jjdx.bookmeeting.model.dto.admin.UserResetPasswordRequest;
-import com.jjdx.bookmeeting.model.dto.user.UserUpdateMyRequest;
+import com.jjdx.bookmeeting.model.dto.admin.user.UserAddRequest;
+import com.jjdx.bookmeeting.model.dto.admin.user.UserQueryRequest;
+import com.jjdx.bookmeeting.model.dto.admin.user.UserResetPasswordRequest;
+import com.jjdx.bookmeeting.model.dto.user.user.UserUpdateMyRequest;
 import com.jjdx.bookmeeting.model.entity.User;
 import com.jjdx.bookmeeting.model.enums.UserRoleEnum;
 import com.jjdx.bookmeeting.model.vo.LoginUserVO;
@@ -40,7 +40,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     /**
      盐值，混淆密码
      */
-    private static final String SALT = "jjdx";
+    public static final String SALT = "jjdx";
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -50,9 +50,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         if (userAccount.length() < 4) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
-        }
-        if (userPassword.length() < 8 || checkPassword.length() < 8) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
         }
         // 密码和校验密码相同
         if (!userPassword.equals(checkPassword)) {
@@ -68,12 +65,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
             // 2. 加密
             String encryptPassword = DigestUtils.md5DigestAsHex(
-                    (SALT + userPassword).getBytes(StandardCharsets.UTF_8) // 明确指定编码
+                    (SALT + userPassword).getBytes(StandardCharsets.UTF_8)
             );
             // 3. 插入数据
             User user = new User();
             user.setUserAccount(userAccount);
             user.setPassword(encryptPassword);
+            // 默认角色为用户
+            user.setRole(UserRoleEnum.USER.getValue());
             boolean saveResult = this.save(user);
             if (!saveResult) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
@@ -163,6 +162,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 设置默认用户名（如果没传）
         if (user.getUserName() == null || user.getUserName().isEmpty()) {
             user.setUserName(user.getUserAccount());
+        }
+
+        // 设置默认角色（如果没传）
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole(UserRoleEnum.USER.getValue());
         }
 
         boolean saved = save(user);

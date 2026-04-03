@@ -1,8 +1,11 @@
 package com.jjdx.bookmeeting.model.enums;
 
+import lombok.Getter;
+
 /**
- * 预定状态枚举
+ 预定状态枚举
  */
+@Getter
 public enum BookingStatusEnum {
 
     PENDING(0, "待签到"),
@@ -19,14 +22,6 @@ public enum BookingStatusEnum {
         this.description = description;
     }
 
-    public int getValue() {
-        return value;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
     public static BookingStatusEnum getEnumByValue(int value) {
         for (BookingStatusEnum status : values()) {
             if (status.value == value) {
@@ -35,4 +30,25 @@ public enum BookingStatusEnum {
         }
         return null;
     }
+
+    public static boolean isPending(int value) {
+        return value == BookingStatusEnum.PENDING.value;
+    }
+
+    public static boolean isInProgress(int value) {
+        return value == BookingStatusEnum.IN_PROGRESS.value;
+    }
+
+    public static boolean isCompleted(int value) {
+        return value == BookingStatusEnum.COMPLETED.value;
+    }
+
+    public static boolean isCancelled(int value) {
+        return value == BookingStatusEnum.CANCELLED.value;
+    }
+
+    public static boolean isTimeout(int value) {
+        return value == BookingStatusEnum.TIMEOUT.value;
+    }
+
 }

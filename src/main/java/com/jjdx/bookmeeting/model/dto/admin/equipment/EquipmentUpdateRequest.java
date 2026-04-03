@@ -1,4 +1,3 @@
-// EquipmentUpdateRequest.java
 package com.jjdx.bookmeeting.model.dto.admin.equipment;
 
 import lombok.Data;
@@ -6,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 更新设备请求
+ 更新设备请求
  */
 @Data
 public class EquipmentUpdateRequest implements Serializable {
@@ -14,32 +13,32 @@ public class EquipmentUpdateRequest implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 设备ID
+     设备ID
      */
     private Long id;
 
     /**
-     * 设备名称
+     设备名称
      */
     private String equipmentName;
 
     /**
-     * 设备代码
+     设备代码
      */
     private String equipmentCode;
 
     /**
-     * 分类ID ✅ 新增
+     分类ID ✅ 新增
      */
     private Long categoryId;
 
     /**
-     * 图标URL
+     图标URL
      */
     private String icon;
 
     /**
-     * 状态（0-正常 1-不可用）
+     状态（0-正常 1-不可用）
      */
     private Integer status;
 }

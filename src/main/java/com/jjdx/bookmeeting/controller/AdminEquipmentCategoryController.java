@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 管理员端-设备分类管理接口
+ 管理员端-设备分类管理接口
  */
 @RestController
 @RequestMapping("/admin/equipment/category")
@@ -39,7 +39,7 @@ public class AdminEquipmentCategoryController {
     private EquipmentService equipmentService;
 
     /**
-     * 新增分类
+     新增分类
      */
     @PostMapping("/add")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -58,14 +58,15 @@ public class AdminEquipmentCategoryController {
         EquipmentCategory category = new EquipmentCategory();
         BeanUtils.copyProperties(addRequest, category);
 
-        boolean saved = equipmentCategoryService.save(category);
-        ThrowUtils.throwIf(!saved, ErrorCode.OPERATION_ERROR, "新增失败");
+        if (!equipmentCategoryService.save(category)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "新增失败");
+        }
 
         return ResultUtils.success(category.getId());
     }
 
     /**
-     * 批量新增分类
+     批量新增分类
      */
     @PostMapping("/add/batch")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -80,7 +81,7 @@ public class AdminEquipmentCategoryController {
     }
 
     /**
-     * 删除分类
+     删除分类
      */
     @PostMapping("/delete")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -95,7 +96,7 @@ public class AdminEquipmentCategoryController {
     }
 
     /**
-     * 批量删除分类
+     批量删除分类
      */
     @PostMapping("/delete/batch")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -119,7 +120,7 @@ public class AdminEquipmentCategoryController {
     }
 
     /**
-     * 更新分类
+     更新分类
      */
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -153,7 +154,7 @@ public class AdminEquipmentCategoryController {
     }
 
     /**
-     * 分页获取分类列表（带设备数量）
+     分页获取分类列表（带设备数量）
      */
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -161,7 +162,6 @@ public class AdminEquipmentCategoryController {
                                                                       HttpServletRequest request) {
         long current = queryRequest.getCurrent();
         long size = queryRequest.getPageSize();
-        ThrowUtils.throwIf(size > 50, ErrorCode.PARAMS_ERROR);
 
         // 查询分类列表
         Page<EquipmentCategory> page = equipmentCategoryService.page(
@@ -197,7 +197,7 @@ public class AdminEquipmentCategoryController {
     }
 
     /**
-     * 获取所有分类（不分页，用于下拉框）
+     获取所有分类（不分页）
      */
     @GetMapping("/list/all")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -210,7 +210,7 @@ public class AdminEquipmentCategoryController {
     }
 
     /**
-     * 根据ID获取分类详情
+     根据ID获取分类详情
      */
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)

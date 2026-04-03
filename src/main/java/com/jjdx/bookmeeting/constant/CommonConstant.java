@@ -1,20 +1,18 @@
 package com.jjdx.bookmeeting.constant;
 
 /**
- * 通用常量
- *
-
+ 通用常量
  */
 public interface CommonConstant {
 
     /**
-     * 升序
+     升序
      */
     String SORT_ORDER_ASC = "ascend";
 
     /**
-     * 降序
+     降序
      */
-    String SORT_ORDER_DESC = " descend";
-    
+    String SORT_ORDER_DESC = "descend";
+
 }

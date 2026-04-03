@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 预定签到请求
+ 预定签到请求
  */
 @Data
 public class BookingSignInRequest implements Serializable {
@@ -13,7 +13,7 @@ public class BookingSignInRequest implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 预定记录ID
+     预定记录ID
      */
     private Long id;
 }

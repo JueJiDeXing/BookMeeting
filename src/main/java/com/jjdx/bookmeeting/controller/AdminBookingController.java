@@ -7,7 +7,6 @@ import com.jjdx.bookmeeting.common.ErrorCode;
 import com.jjdx.bookmeeting.common.ResultUtils;
 import com.jjdx.bookmeeting.constant.UserConstant;
 import com.jjdx.bookmeeting.exception.BusinessException;
-import com.jjdx.bookmeeting.exception.ThrowUtils;
 import com.jjdx.bookmeeting.interceptor.aop.annotation.AuthCheck;
 import com.jjdx.bookmeeting.model.dto.admin.booking.*;
 import com.jjdx.bookmeeting.model.entity.BookingRecord;
@@ -16,7 +15,6 @@ import com.jjdx.bookmeeting.service.BookingRecordService;
 import com.jjdx.bookmeeting.service.MeetingRoomService;
 import com.jjdx.bookmeeting.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -26,7 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 管理员-会议预定管理接口
+ 管理员-会议预定管理接口
  */
 @RestController
 @RequestMapping("/admin/booking")
@@ -45,7 +43,7 @@ public class AdminBookingController {
     // region 增删改查
 
     /**
-     * 创建预定
+     创建预定
      */
     @PostMapping("/add")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -97,7 +95,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 删除预定
+     删除预定
      */
     @PostMapping("/delete")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -118,7 +116,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 批量删除预定
+     批量删除预定
      */
     @PostMapping("/delete/batch")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -133,7 +131,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 更新预定
+     更新预定
      */
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -188,7 +186,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 取消预定
+     取消预定
      */
     @PostMapping("/cancel")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -206,7 +204,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 批量取消预定
+     批量取消预定
      */
     @PostMapping("/cancel/batch")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -224,7 +222,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 手动签到
+     手动签到
      */
     @PostMapping("/signin")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -242,7 +240,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 手动结束会议
+     手动结束会议
      */
     @PostMapping("/complete")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -260,7 +258,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 发送提醒
+     发送提醒
      */
     @PostMapping("/remind")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -278,7 +276,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 根据 id 获取预定
+     根据 id 获取预定
      */
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -294,7 +292,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 根据 id 获取预定VO（带详细信息）
+     根据 id 获取预定VO（带详细信息）
      */
     @GetMapping("/get/vo")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -312,7 +310,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 分页获取预定列表
+     分页获取预定列表
      */
     @PostMapping("/list/page")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -334,7 +332,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 分页获取预定VO列表（带详细信息）
+     分页获取预定VO列表（带详细信息）
      */
     @PostMapping("/list/page/vo")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -346,9 +344,6 @@ public class AdminBookingController {
 
         long current = queryRequest.getCurrent();
         long size = queryRequest.getPageSize();
-
-        // 限制爬虫
-        
 
         Page<BookingRecord> bookingPage = bookingRecordService.page(
                 new Page<>(current, size),
@@ -365,7 +360,7 @@ public class AdminBookingController {
     }
 
     /**
-     * 获取用户预定日历数据
+     获取用户预定日历数据
      */
     @PostMapping("/calendar")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
@@ -384,7 +379,7 @@ public class AdminBookingController {
     // region 参数校验
 
     /**
-     * 校验预定创建请求
+     校验预定创建请求
      */
     private void validateBookingAddRequest(BookingAddRequest request) {
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
@@ -405,13 +400,13 @@ public class AdminBookingController {
         if (request.getEndTime() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请选择结束时间");
         }
-        if (request.getRemindBefore() != null && (request.getRemindBefore() < 0 || request.getRemindBefore() > 1440)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "提醒时间必须在0-1440分钟之间");
+        if (request.getRemindBefore() != null && (request.getRemindBefore() < 0 || request.getRemindBefore() > 24 * 60)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "提醒时间必须在0-24小时之间");
         }
     }
 
     /**
-     * 校验预定更新请求
+     校验预定更新请求
      */
     private void validateBookingUpdateRequest(BookingUpdateRequest request) {
         if (request.getTitle() != null) {
@@ -422,8 +417,8 @@ public class AdminBookingController {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "会议主题不能超过100个字符");
             }
         }
-        if (request.getRemindBefore() != null && (request.getRemindBefore() < 0 || request.getRemindBefore() > 1440)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "提醒时间必须在0-1440分钟之间");
+        if (request.getRemindBefore() != null && (request.getRemindBefore() < 0 || request.getRemindBefore() > 24 * 60)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "提醒时间必须在0-24小时之间");
         }
     }
 

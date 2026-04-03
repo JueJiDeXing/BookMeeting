@@ -1,8 +1,11 @@
 package com.jjdx.bookmeeting.common;
 
+import lombok.Getter;
+
 /**
  自定义错误码
  */
+@Getter
 public enum ErrorCode {
 
     SUCCESS(0, "ok"),
@@ -28,14 +31,6 @@ public enum ErrorCode {
     ErrorCode(int code, String message) {
         this.code = code;
         this.message = message;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
     }
 
 }

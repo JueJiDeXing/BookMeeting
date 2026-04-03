@@ -27,7 +27,7 @@ public class UserMessageController {
     private UserService userService;
 
     /**
-     * 获取未读消息列表
+     获取未读消息列表
      */
     @GetMapping("/unread")
     public BaseResponse<List<MessageVO>> getUnreadMessages(HttpServletRequest request) {
@@ -37,7 +37,7 @@ public class UserMessageController {
     }
 
     /**
-     * 获取未读消息数量
+     获取未读消息数量
      */
     @GetMapping("/unread/count")
     public BaseResponse<Integer> getUnreadCount(HttpServletRequest request) {
@@ -47,12 +47,12 @@ public class UserMessageController {
     }
 
     /**
-     * 获取消息列表（分页）
+     获取消息列表（分页）
      */
     @PostMapping("/list")
     public BaseResponse<List<MessageVO>> getMessages(
             @RequestParam(defaultValue = "1") int current,
-            @RequestParam(defaultValue = "20") int pageSize,
+            @RequestParam(defaultValue = "10") int pageSize,
             HttpServletRequest request) {
         Long userId = userService.getLoginUser(request).getId();
         List<MessageVO> messages = messageService.getUserMessages(userId, current, pageSize);
@@ -60,7 +60,7 @@ public class UserMessageController {
     }
 
     /**
-     * 标记单条消息为已读
+     标记单条消息为已读
      */
     @PostMapping("/read/{id}")
     public BaseResponse<Boolean> markAsRead(@PathVariable Long id, HttpServletRequest request) {
@@ -70,11 +70,11 @@ public class UserMessageController {
     }
 
     /**
-     * 批量标记为已读
+     批量标记为已读
      */
     @PostMapping("/read/batch")
     public BaseResponse<Boolean> batchMarkAsRead(@RequestBody MessageBatchReadRequest request,
-                                                  HttpServletRequest req) {
+                                                 HttpServletRequest req) {
         if (request == null || request.getIds() == null || request.getIds().isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

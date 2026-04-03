@@ -13,8 +13,12 @@ import com.jjdx.bookmeeting.model.entity.Equipment;
 import com.jjdx.bookmeeting.model.entity.EquipmentCategory;
 import com.jjdx.bookmeeting.model.entity.MeetingRoom;
 import com.jjdx.bookmeeting.model.entity.RoomEquipment;
+import com.jjdx.bookmeeting.model.enums.EquipmentStatusEnum;
 import com.jjdx.bookmeeting.model.vo.EquipmentVO;
-import com.jjdx.bookmeeting.service.*;
+import com.jjdx.bookmeeting.service.EquipmentCategoryService;
+import com.jjdx.bookmeeting.service.EquipmentService;
+import com.jjdx.bookmeeting.service.MeetingRoomService;
+import com.jjdx.bookmeeting.service.RoomEquipmentService;
 import com.jjdx.bookmeeting.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +61,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         if (StringUtils.isBlank(equipmentCode)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "设备代码不能为空");
         }
-        if (categoryId == null) {  // ✅ 新增校验
+        if (categoryId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请选择设备分类");
         }
 
@@ -78,8 +82,8 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         Equipment equipment = new Equipment();
         equipment.setEquipmentName(equipmentName);
         equipment.setEquipmentCode(equipmentCode);
-        equipment.setCategoryId(categoryId);  // ✅ 新增
-        equipment.setStatus(status != null ? status : 0);
+        equipment.setCategoryId(categoryId);
+        equipment.setStatus(status != null ? status : EquipmentStatusEnum.NORMAL.getValue());
 
         boolean saved = save(equipment);
         if (!saved) {
@@ -125,11 +129,12 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         updateEquipment.setId(id);
         updateEquipment.setEquipmentName(equipmentName);
         updateEquipment.setEquipmentCode(equipmentCode);
-        updateEquipment.setCategoryId(categoryId);  // ✅ 新增
+        updateEquipment.setCategoryId(categoryId);
         updateEquipment.setStatus(status);
 
         return updateById(updateEquipment);
     }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateEquipmentStatus(Long id, Integer status, String remark, Long operatorId) {
@@ -164,7 +169,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         }
 
         // 检查设备状态是否正常
-        if (equipment.getStatus() != 0) {
+        if (!EquipmentStatusEnum.isNormal(equipment.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "设备状态异常，无法移入");
         }
 
@@ -242,7 +247,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         }
 
         // 更新设备状态为不可用
-        equipment.setStatus(1);
+        equipment.setStatus(EquipmentStatusEnum.UNAVAILABLE.getValue());
         updateById(equipment);
 
         log.info("管理员[{}]报废设备[{}]", operatorId, equipment.getEquipmentName());
@@ -295,7 +300,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
         EquipmentVO equipmentVO = new EquipmentVO();
         BeanUtils.copyProperties(equipment, equipmentVO);
 
-        // ✅ 获取设备分类名称
+        // 获取设备分类名称
         if (equipment.getCategoryId() != null) {
             EquipmentCategory category = equipmentCategoryService.getById(equipment.getCategoryId());
             if (category != null) {
@@ -358,7 +363,7 @@ public class EquipmentServiceImpl extends ServiceImpl<EquipmentMapper, Equipment
 
     @Override
     public List<Equipment> getAvailableEquipment() {
-        return getEquipmentByStatus(0);
+        return getEquipmentByStatus(EquipmentStatusEnum.NORMAL.getValue());
     }
 
     @Override

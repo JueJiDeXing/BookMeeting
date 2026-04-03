@@ -7,6 +7,8 @@ import com.jjdx.bookmeeting.exception.BusinessException;
 import com.jjdx.bookmeeting.model.dto.user.attendee.AttendeeResponseRequest;
 import com.jjdx.bookmeeting.model.entity.AttendeeResponse;
 import com.jjdx.bookmeeting.model.entity.BookingRecord;
+import com.jjdx.bookmeeting.model.enums.AttendeeResponseStatusEnum;
+import com.jjdx.bookmeeting.model.enums.BookingStatusEnum;
 import com.jjdx.bookmeeting.model.vo.AttendeeVO;
 import com.jjdx.bookmeeting.service.AttendeeResponseService;
 import com.jjdx.bookmeeting.service.BookingRecordService;
@@ -17,9 +19,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * 用户端-参会响应接口
+ 用户端-参会响应接口
  */
 @RestController
 @RequestMapping("/user/attendee")
@@ -36,7 +39,7 @@ public class UserAttendeeController {
     private UserService userService;
 
     /**
-     * 获取用户待响应的会议列表
+     获取用户待响应的会议列表
      */
     @GetMapping("/pending")
     public BaseResponse<List<AttendeeVO>> getPendingMeetings(HttpServletRequest request) {
@@ -45,7 +48,7 @@ public class UserAttendeeController {
         // 查询用户所有待响应的参会记录
         List<AttendeeResponse> responses = attendeeResponseService.lambdaQuery()
                 .eq(AttendeeResponse::getUserId, userId)
-                .eq(AttendeeResponse::getStatus, 0) // 待确认
+                .eq(AttendeeResponse::getStatus, AttendeeResponseStatusEnum.PENDING) // 待确认
                 .eq(AttendeeResponse::getIsDelete, 0)
                 .list();
 
@@ -73,14 +76,14 @@ public class UserAttendeeController {
                     vo.setRoomId(booking.getRoomId());
                     return vo;
                 })
-                .filter(vo -> vo != null)
+                .filter(Objects::nonNull)
                 .collect(java.util.stream.Collectors.toList());
 
         return ResultUtils.success(result);
     }
 
     /**
-     * 获取用户已响应的会议列表（已确认/已拒绝）
+     获取用户已响应的会议列表（已确认/已拒绝）
      */
     @GetMapping("/responded")
     public BaseResponse<List<AttendeeVO>> getRespondedMeetings(HttpServletRequest request) {
@@ -88,7 +91,9 @@ public class UserAttendeeController {
 
         List<AttendeeResponse> responses = attendeeResponseService.lambdaQuery()
                 .eq(AttendeeResponse::getUserId, userId)
-                .in(AttendeeResponse::getStatus, 1, 2) // 已确认、已拒绝
+                .in(AttendeeResponse::getStatus,
+                        AttendeeResponseStatusEnum.CONFIRMED,
+                        AttendeeResponseStatusEnum.REFUSE) // 已确认、已拒绝
                 .eq(AttendeeResponse::getIsDelete, 0)
                 .orderByDesc(AttendeeResponse::getResponseTime)
                 .list();
@@ -112,14 +117,14 @@ public class UserAttendeeController {
                     vo.setRoomId(booking.getRoomId());
                     return vo;
                 })
-                .filter(vo -> vo != null)
+                .filter(Objects::nonNull)
                 .collect(java.util.stream.Collectors.toList());
 
         return ResultUtils.success(result);
     }
 
     /**
-     * 确认参会
+     确认参会
      */
     @PostMapping("/confirm")
     public BaseResponse<Boolean> confirmMeeting(@RequestBody AttendeeResponseRequest request,
@@ -142,7 +147,7 @@ public class UserAttendeeController {
         }
 
         // 检查会议是否已取消
-        if (booking.getStatus() == 3) {
+        if (BookingStatusEnum.isCancelled(booking.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "会议已取消");
         }
 
@@ -150,7 +155,7 @@ public class UserAttendeeController {
         boolean success = attendeeResponseService.updateStatus(
                 request.getBookingId(),
                 userId,
-                1,  // 1-已确认
+                AttendeeResponseStatusEnum.CONFIRMED.getValue(),  // 已确认
                 request.getRemark()
         );
 
@@ -162,7 +167,7 @@ public class UserAttendeeController {
     }
 
     /**
-     * 拒绝参会
+     拒绝参会
      */
     @PostMapping("/reject")
     public BaseResponse<Boolean> rejectMeeting(@RequestBody AttendeeResponseRequest request,
@@ -185,7 +190,7 @@ public class UserAttendeeController {
         }
 
         // 检查会议是否已取消
-        if (booking.getStatus() == 3) {
+        if (BookingStatusEnum.isCancelled(booking.getStatus())) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "会议已取消");
         }
 
@@ -193,7 +198,7 @@ public class UserAttendeeController {
         boolean success = attendeeResponseService.updateStatus(
                 request.getBookingId(),
                 userId,
-                2,  // 2-已拒绝
+                AttendeeResponseStatusEnum.REFUSE.getValue(),  // 已拒绝
                 request.getRemark()
         );
 
@@ -205,7 +210,7 @@ public class UserAttendeeController {
     }
 
     /**
-     * 获取某个会议中当前用户的响应状态
+     获取某个会议中当前用户的响应状态
      */
     @GetMapping("/status")
     public BaseResponse<Integer> getAttendeeStatus(@RequestParam Long bookingId,
@@ -229,7 +234,7 @@ public class UserAttendeeController {
     }
 
     /**
-     * 批量响应（可选）
+     批量响应（可选）
      */
     @PostMapping("/batch")
     public BaseResponse<Boolean> batchRespond(@RequestBody java.util.List<AttendeeResponseRequest> requests,
@@ -245,16 +250,14 @@ public class UserAttendeeController {
             if (request.getBookingId() == null || request.getStatus() == null) {
                 continue;
             }
-            if (request.getStatus() != 1 && request.getStatus() != 2) {
+            if (AttendeeResponseStatusEnum.isPending(request.getStatus())) {
                 continue;
             }
 
             try {
                 boolean success = attendeeResponseService.updateStatus(
-                        request.getBookingId(),
-                        userId,
-                        request.getStatus(),
-                        request.getRemark()
+                        request.getBookingId(), userId,
+                        request.getStatus(), request.getRemark()
                 );
                 if (success) {
                     successCount++;

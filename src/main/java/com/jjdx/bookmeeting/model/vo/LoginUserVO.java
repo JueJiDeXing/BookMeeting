@@ -6,35 +6,33 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 已登录用户视图（脱敏）
- *
-
+ 已登录用户视图（脱敏）
  **/
 @Data
 public class LoginUserVO implements Serializable {
 
     /**
-     * 用户 id
+     用户 id
      */
     private Long id;
 
     /**
-     * 用户昵称
+     用户昵称
      */
     private String userName;
 
     /**
-     * 用户角色：user/admin/ban
+     用户角色：user/admin/ban
      */
     private String role;
 
     /**
-     * 创建时间
+     创建时间
      */
     private Date createTime;
 
     /**
-     * 更新时间
+     更新时间
      */
     private Date updateTime;
 

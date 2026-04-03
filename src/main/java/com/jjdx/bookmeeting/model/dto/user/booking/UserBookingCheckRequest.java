@@ -6,23 +6,23 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * 用户端检查时间可用性请求
+ 用户端检查时间可用性请求
  */
 @Data
 public class UserBookingCheckRequest implements Serializable {
 
     /**
-     * 会议室ID
+     会议室ID
      */
     private Long roomId;
 
     /**
-     * 开始时间
+     开始时间
      */
     private LocalDateTime startTime;
 
     /**
-     * 结束时间
+     结束时间
      */
     private LocalDateTime endTime;
 

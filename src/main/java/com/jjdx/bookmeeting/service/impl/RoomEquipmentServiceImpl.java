@@ -1,4 +1,3 @@
-// RoomEquipmentServiceImpl.java
 package com.jjdx.bookmeeting.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -17,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 会议室设备关系服务实现
+ 会议室设备关系服务实现
  */
 @Service
 @Slf4j
@@ -27,7 +26,7 @@ public class RoomEquipmentServiceImpl extends ServiceImpl<RoomEquipmentMapper, R
     public List<Long> getEquipmentIdsByRoomId(Long roomId) {
         LambdaQueryWrapper<RoomEquipment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(RoomEquipment::getRoomId, roomId);
-        
+
         return list(wrapper).stream()
                 .map(RoomEquipment::getEquipmentId)
                 .collect(Collectors.toList());
@@ -37,7 +36,7 @@ public class RoomEquipmentServiceImpl extends ServiceImpl<RoomEquipmentMapper, R
     public List<Long> getRoomIdsByEquipmentId(Long equipmentId) {
         LambdaQueryWrapper<RoomEquipment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(RoomEquipment::getEquipmentId, equipmentId);
-        
+
         return list(wrapper).stream()
                 .map(RoomEquipment::getRoomId)
                 .collect(Collectors.toList());
@@ -68,7 +67,7 @@ public class RoomEquipmentServiceImpl extends ServiceImpl<RoomEquipmentMapper, R
     public boolean updateRoomEquipments(Long roomId, List<Long> equipmentIds) {
         // 先删除原有关系
         removeByRoomId(roomId);
-        
+
         // 再添加新关系
         return addRoomEquipments(roomId, equipmentIds);
     }
@@ -78,7 +77,7 @@ public class RoomEquipmentServiceImpl extends ServiceImpl<RoomEquipmentMapper, R
     public boolean removeByRoomId(Long roomId) {
         LambdaQueryWrapper<RoomEquipment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(RoomEquipment::getRoomId, roomId);
-        
+
         return remove(wrapper);
     }
 
@@ -87,7 +86,7 @@ public class RoomEquipmentServiceImpl extends ServiceImpl<RoomEquipmentMapper, R
     public boolean removeByEquipmentId(Long equipmentId) {
         LambdaQueryWrapper<RoomEquipment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(RoomEquipment::getEquipmentId, equipmentId);
-        
+
         return remove(wrapper);
     }
 
@@ -96,7 +95,7 @@ public class RoomEquipmentServiceImpl extends ServiceImpl<RoomEquipmentMapper, R
         LambdaQueryWrapper<RoomEquipment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(RoomEquipment::getRoomId, roomId)
                 .eq(RoomEquipment::getEquipmentId, equipmentId);
-        
+
         return count(wrapper) > 0;
     }
 
@@ -104,7 +103,7 @@ public class RoomEquipmentServiceImpl extends ServiceImpl<RoomEquipmentMapper, R
     public int countEquipmentByRoomId(Long roomId) {
         LambdaQueryWrapper<RoomEquipment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(RoomEquipment::getRoomId, roomId);
-        
+
         return (int) count(wrapper);
     }
 }

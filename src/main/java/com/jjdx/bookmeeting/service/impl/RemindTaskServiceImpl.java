@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 提醒任务服务实现
+ 提醒任务服务实现
  */
 @Service
 @Slf4j
@@ -183,7 +183,7 @@ public class RemindTaskServiceImpl extends ServiceImpl<RemindTaskMapper, RemindT
     }
 
     /**
-     * 发送提醒的定时任务方法（可选）
+     发送提醒的定时任务方法（可选）
      */
     @Transactional(rollbackFor = Exception.class)
     public void processPendingRemindTasks() {

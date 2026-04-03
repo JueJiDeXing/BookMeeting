@@ -28,7 +28,7 @@ public class AttendeeVO {
 
     private String phone;
 
-    // ✅ 新增：会议信息
+    // 会议信息
     private String bookingTitle;
 
     private LocalDateTime bookingStartTime;

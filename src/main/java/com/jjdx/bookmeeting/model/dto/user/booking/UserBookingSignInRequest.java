@@ -5,13 +5,13 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 用户端签到请求
+ 用户端签到请求
  */
 @Data
 public class UserBookingSignInRequest implements Serializable {
 
     /**
-     * 预定记录ID
+     预定记录ID
      */
     private Long id;
 

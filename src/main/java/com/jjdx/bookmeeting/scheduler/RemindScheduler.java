@@ -2,6 +2,7 @@ package com.jjdx.bookmeeting.scheduler;
 
 import com.jjdx.bookmeeting.model.entity.BookingRecord;
 import com.jjdx.bookmeeting.model.entity.RemindTask;
+import com.jjdx.bookmeeting.model.enums.BookingStatusEnum;
 import com.jjdx.bookmeeting.model.enums.RemindStatusEnum;
 import com.jjdx.bookmeeting.service.BookingRecordService;
 import com.jjdx.bookmeeting.service.MessageService;
@@ -32,13 +33,13 @@ public class RemindScheduler {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("MM-dd HH:mm");
 
     /**
-     * 每分钟执行一次，检查并发送提醒
+     每分钟执行一次，检查并发送提醒
      */
     @Scheduled(cron = "0 * * * * ?")
     @Transactional(rollbackFor = Exception.class)
     public void processRemindTasks() {
         LocalDateTime now = LocalDateTime.now();
-        
+
         // 查询待发送且提醒时间已到的任务
         List<RemindTask> pendingTasks = remindTaskService.lambdaQuery()
                 .eq(RemindTask::getStatus, RemindStatusEnum.PENDING.getValue())
@@ -64,8 +65,9 @@ public class RemindScheduler {
                     continue;
                 }
 
-                // 如果预定已取消或已完成，不再发送提醒
-                if (booking.getStatus() == 3 || booking.getStatus() == 2) {
+                // 如果预定已完成或已取消，不再发送提醒
+                if (BookingStatusEnum.isCompleted(booking.getStatus())
+                        || BookingStatusEnum.isCancelled(booking.getStatus())) {
                     log.info("预定[{}]已取消/完成，跳过提醒", task.getBookingId());
                     task.setStatus(RemindStatusEnum.CANCELLED.getValue());
                     remindTaskService.updateById(task);
@@ -97,7 +99,7 @@ public class RemindScheduler {
                 task.setStatus(RemindStatusEnum.SENT.getValue());
                 remindTaskService.updateById(task);
 
-                log.info("提醒任务[{}]已发送给用户[{}]，会议[{}]", 
+                log.info("提醒任务[{}]已发送给用户[{}]，会议[{}]",
                         task.getId(), task.getUserId(), task.getBookingId());
 
             } catch (Exception e) {
@@ -110,7 +112,7 @@ public class RemindScheduler {
     }
 
     /**
-     * 获取会议室名称（需要注入 MeetingRoomService）
+     获取会议室名称（需要注入 MeetingRoomService）
      */
     private String getRoomName(Long roomId) {
         // TODO: 注入 MeetingRoomService 并查询

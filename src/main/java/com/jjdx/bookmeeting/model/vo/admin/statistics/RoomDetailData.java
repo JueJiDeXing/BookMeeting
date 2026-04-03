@@ -2,8 +2,6 @@ package com.jjdx.bookmeeting.model.vo.admin.statistics;
 
 import lombok.Data;
 
-import java.util.*;
-
 // RoomDetailData.java
 @Data
 public class RoomDetailData {

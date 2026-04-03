@@ -1,8 +1,11 @@
 package com.jjdx.bookmeeting.model.enums;
 
+import lombok.Getter;
+
 /**
- * 提醒状态枚举
+ 提醒状态枚举
  */
+@Getter
 public enum RemindStatusEnum {
 
     PENDING(0, "待发送"),
@@ -18,11 +21,4 @@ public enum RemindStatusEnum {
         this.description = description;
     }
 
-    public int getValue() {
-        return value;
-    }
-
-    public String getDescription() {
-        return description;
-    }
 }

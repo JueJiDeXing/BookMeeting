@@ -7,9 +7,8 @@ import com.jjdx.bookmeeting.common.ErrorCode;
 import com.jjdx.bookmeeting.common.ResultUtils;
 import com.jjdx.bookmeeting.constant.UserConstant;
 import com.jjdx.bookmeeting.exception.BusinessException;
-import com.jjdx.bookmeeting.exception.ThrowUtils;
 import com.jjdx.bookmeeting.interceptor.aop.annotation.AuthCheck;
-import com.jjdx.bookmeeting.model.dto.admin.*;
+import com.jjdx.bookmeeting.model.dto.admin.user.*;
 import com.jjdx.bookmeeting.model.entity.User;
 import com.jjdx.bookmeeting.model.vo.UserVO;
 import com.jjdx.bookmeeting.service.UserService;
@@ -31,11 +30,6 @@ public class AdminUserController {
 
     @Resource
     private UserService userService;
-
-    /**
-     盐值，混淆密码（必须和UserServiceImpl中一致）
-     */
-    private static final String SALT = "jjdx";
 
     // region 增删改查
 
@@ -190,7 +184,7 @@ public class AdminUserController {
                                                    HttpServletRequest request) {
         long current = userQueryRequest.getCurrent();
         long size = userQueryRequest.getPageSize();
-        
+
         Page<User> userPage = userService.page(new Page<>(current, size),
                 userService.getQueryWrapper(userQueryRequest));
 
@@ -212,9 +206,6 @@ public class AdminUserController {
         }
         long current = userQueryRequest.getCurrent();
         long size = userQueryRequest.getPageSize();
-
-        // 限制爬虫
-        
 
         Page<User> userPage = userService.page(new Page<>(current, size),
                 userService.getQueryWrapper(userQueryRequest));

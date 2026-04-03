@@ -1,4 +1,4 @@
-package com.jjdx.bookmeeting.model.dto.user;
+package com.jjdx.bookmeeting.model.dto.user.user;
 
 import lombok.Data;
 
